@@ -50,11 +50,13 @@
 </head>
 <body>
     <div class="video-container">
-        <video id="video" style="width: 100%; height: 100%;" muted autoplay playsInline></video>
+        <video id="video" style="width: 100%; height: 100%;" autoPlay playsInline></video>
         <div class="controls">
+            <button id="playPauseBtn">Pause</button>
             <button id="unmuteBtn">Unmute</button>
             <button id="seekBackBtn">⏪ 10s</button>
             <button id="seekForwardBtn">10s ⏩</button>
+            <button id="fullscreenBtn">Fullscreen</button>
             <div class="progress-container">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
@@ -63,18 +65,35 @@
     <script>
         window.onload = function () {
             var video = document.getElementById('video');
-            var videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+            var videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8?v=' + new Date().getTime();
             var progressBar = document.getElementById('progressBar');
             var progressContainer = progressBar.parentElement;
+            var playPauseBtn = document.getElementById('playPauseBtn');
 
             // Check for native browser HLS support
             if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                alert('here');
                 video.src = videoSrc;
+                video.volume = 0;
+                video.autoplay = true;
+                video.currentTime = 0;
+                video.muted = true;
             } else if (Hls.isSupported()) {
                 var hls = new Hls();
                 hls.loadSource(videoSrc);
                 hls.attachMedia(video);
             }
+
+            // Play/Pause button functionality
+            playPauseBtn.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    this.textContent = 'Pause';
+                } else {
+                    video.pause();
+                    this.textContent = 'Play';
+                }
+            });
 
             // Unmute button functionality
             document.getElementById('unmuteBtn').addEventListener('click', function() {
@@ -92,6 +111,29 @@
                 video.currentTime = Math.min(video.duration, video.currentTime + 10);
             });
 
+            // Fullscreen button functionality
+            document.getElementById('fullscreenBtn').addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    if (video.requestFullscreen) {
+                        video.requestFullscreen();
+                    } else if (video.webkitRequestFullscreen) { /* Safari */
+                        video.webkitRequestFullscreen();
+                    } else if (video.msRequestFullscreen) { /* IE11 */
+                        video.msRequestFullscreen();
+                    }
+                    this.textContent = 'Exit Fullscreen';
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) { /* Safari */
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) { /* IE11 */
+                        document.msExitFullscreen();
+                    }
+                    this.textContent = 'Fullscreen';
+                }
+            });
+
             // Update progress bar
             video.addEventListener('timeupdate', function() {
                 if (video.duration) {
@@ -107,6 +149,14 @@
                 var width = rect.width;
                 var seekTime = (clickX / width) * video.duration;
                 video.currentTime = seekTime;
+            });
+
+            // Update button text when video is played or paused
+            video.addEventListener('play', function() {
+                playPauseBtn.textContent = 'Pause';
+            });
+            video.addEventListener('pause', function() {
+                playPauseBtn.textContent = 'Play';
             });
         }
     </script>

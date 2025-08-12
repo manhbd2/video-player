@@ -72,7 +72,7 @@
 
                 navigator.serviceWorker.addEventListener('message', (event) => {
                     if (event.data && event.data.type === 'SW_LOG') {
-                        console.log('[SW][Remote]', ...event.data.payload);
+                        alert('[SW][Remote]', ...event.data.payload);
                     }
                 });
             }

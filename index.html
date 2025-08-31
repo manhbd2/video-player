@@ -1,176 +1,62 @@
-<!DOCTYPE html>
 <html>
+
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
-    <meta http-equiv="Permissions-Policy" content="fullscreen=(self 'https://test-streams.mux.dev')">
-    <style>
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-        }
-        .controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 10px;
-            border-radius: 5px;
-            align-items: center;
-        }
-        .controls button {
-            padding: 8px 12px;
-            background: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .controls button:hover {
-            background: #ddd;
-        }
-        .progress-container {
-            width: 200px;
-            height: 10px;
-            background: #555;
-            border-radius: 5px;
-            cursor: pointer;
-            position: relative;
-        }
-        .progress-bar {
-            height: 100%;
-            background: #4caf50;
-            border-radius: 5px;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-    </style>
+    <meta name="robots" content="none">
+    <meta name="referrer" content="no-referrer">
+    <meta name="theme-color" content="black">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
 </head>
-<body>
-    <div class="video-container">
-        <video id="video" style="width: 100%; height: 100%;" muted autoPlay disableRemotePlayback webkit-playsinline playsInline></video>
-        <div class="controls">
-            <button id="playPauseBtn">Play</button>
-            <button id="unmuteBtn">Unmute</button>
-            <button id="seekBackBtn">⏪ 10s</button>
-            <button id="seekForwardBtn">10s ⏩</button>
-            <button id="fullscreenBtn">Fullscreen</button>
-            <div class="progress-container">
-                <div class="progress-bar" id="progressBar"></div>
-            </div>
-        </div>
+
+<body bgcolor="black" style="margin:0; overflow:hidden">
+    <script src="//ssl.p.jwpcdn.com/player/v/8.26.4/jwplayer.js">
+    </script>
+    <script>jwplayer.key = "XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo"</script>
+    <script src="//cdn.jsdelivr.net/npm/p2p-media-loader-core@latest/build/p2p-media-loader-core.min.js">
+    </script>
+    <script src="//cdn.jsdelivr.net/npm/p2p-media-loader-hlsjs@latest/build/p2p-media-loader-hlsjs.min.js">
+    </script>
+    <script src="//cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <div id="player">
     </div>
     <script>
-        window.onload = function () {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/video-player/sw.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.error('Service Worker registration failed:', err));
-
-                // navigator.serviceWorker.addEventListener('message', (event) => {
-                //     if (event.data && event.data.type === 'SW_LOG') {
-                //         alert('[SW][Remote]', ...event.data.payload);
-                //     }
-                // });
-            }
-            var video = document.getElementById('video');
-            var videoSrc = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8?v=' + new Date().getTime();
-            var progressBar = document.getElementById('progressBar');
-            var progressContainer = progressBar.parentElement;
-            var playPauseBtn = document.getElementById('playPauseBtn');
-
-            // Check for native browser HLS support
-            if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                // alert('here 3');
-                video.src = videoSrc;
-            } else if (Hls.isSupported()) {
-                var hls = new Hls();
-                hls.loadSource(videoSrc);
-                hls.attachMedia(video);
-            }
-
-            // Play/Pause button functionality
-            playPauseBtn.addEventListener('click', function() {
-                if (video.paused) {
-                    video.play().catch(function(error) {
-                        console.error('Play error:', error);
-                    });
-                    this.textContent = 'Pause';
-                } else {
-                    video.pause();
-                    this.textContent = 'Play';
+        if (Hls.isSupported() && p2pml.hlsjs.Engine.isSupported()) {
+            var engine = new p2pml.hlsjs.Engine(
+                {
+                    core: {
+                        isP2PDisabled: false,
+                        announceTrackers: ["wss://tracker.openwebtorrent.com"],
+                        simultaneousP2PDownloads: 5,
+                        simultaneousHttpDownloads: 1,
+                        httpDownloadProbability: 0.05,
+                    },
+                    live: false,
+                    httpUseRanges: true,
+                    httpUseXauth: true
                 }
-            });
+            );
+            var player = jwplayer("player");
 
-            // Unmute button functionality
-            document.getElementById('unmuteBtn').addEventListener('click', function() {
-                video.muted = !video.muted;
-                this.textContent = video.muted ? 'Unmute' : 'Mute';
-            });
+            engine.on(p2pml.core.Events.PeerConnect, (event) => {
+                console.log(event);
+            })
 
-            // Seek backward 10 seconds
-            document.getElementById('seekBackBtn').addEventListener('click', function() {
-                video.currentTime = Math.max(0, video.currentTime - 10);
-            });
+            engine.on(p2pml.core.SegmentLoaded, (event) => {
+                console.log(event);
+            })
 
-            // Seek forward 10 seconds
-            document.getElementById('seekForwardBtn').addEventListener('click', function() {
-                video.currentTime = Math.min(video.duration, video.currentTime + 10);
-            });
-
-            // Fullscreen button functionality
-            document.getElementById('fullscreenBtn').addEventListener('click', function() {
-                if (!document.fullscreenElement) {
-                    if (video.requestFullscreen) {
-                        video.requestFullscreen().catch(function(error) {
-                            console.error('Fullscreen error:', error);
-                        });
-                    } else if (video.webkitRequestFullscreen) { /* Safari */
-                        video.webkitRequestFullscreen();
-                    } else if (video.msRequestFullscreen) { /* IE11 */
-                        video.msRequestFullscreen();
-                    }
-                    this.textContent = 'Exit Fullscreen';
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) { /* Safari */
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) { /* IE11 */
-                        document.msExitFullscreen();
-                    }
-                    this.textContent = 'Fullscreen';
-                }
-            });
-
-            // Update progress bar
-            video.addEventListener('timeupdate', function() {
-                if (video.duration) {
-                    var progressPercent = (video.currentTime / video.duration) * 100;
-                    progressBar.style.width = progressPercent + '%';
-                }
-            });
-
-            // Seek when clicking on progress bar
-            progressContainer.addEventListener('click', function(e) {
-                var rect = progressContainer.getBoundingClientRect();
-                var clickX = e.clientX - rect.left;
-                var width = rect.width;
-                var seekTime = (clickX / width) * video.duration;
-                video.currentTime = seekTime;
-            });
-
-            // Update button text when video is played or paused
-            video.addEventListener('play', function() {
-                playPauseBtn.textContent = 'Pause';
-            });
-            video.addEventListener('pause', function() {
-                playPauseBtn.textContent = 'Play';
-            });
-        }
+            player.setup(
+                {
+                    playlist: [
+                        {
+                            "sources": [
+                                {
+                                    "file": "https://stream-akamai.castr.com/5b9352dbda7b8c769937e459/live_2361c920455111ea85db6911fe397b9e/index.fmp4.m3u8",
+                                }]
+                        }], width: "100%", height: "100%", autostart: true, mute: false
+                });
+            p2pml.hlsjs.initJwPlayer(player, { liveSyncDurationCount: 7, loader: engine.createLoaderClass(), });
+        } else { document.write("Not supported :("); }
     </script>
-</body>
+
 </html>

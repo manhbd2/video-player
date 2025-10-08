@@ -1,65 +1,11 @@
+<!DOCTYPE html>
 <html>
+<body>
 
-<head>
-    <meta name="robots" content="none">
-    <meta name="referrer" content="no-referrer">
-    <meta name="theme-color" content="black">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-</head>
+<h2>HTML Iframes</h2>
 
-<body bgcolor="black" style="margin:0; overflow:hidden">
-    <script src="//ssl.p.jwpcdn.com/player/v/8.26.4/jwplayer.js">
-    </script>
-    <script>jwplayer.key = "XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo"</script>
-    <script src="//cdn.jsdelivr.net/npm/p2p-media-loader-core@latest/build/p2p-media-loader-core.min.js">
-    </script>
-    <script src="//cdn.jsdelivr.net/npm/p2p-media-loader-hlsjs@latest/build/p2p-media-loader-hlsjs.min.js">
-    </script>
-    <script src="//cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <div id="player">
-    </div>
-    <script>
-        alert(p2pml.hlsjs.Engine.isSupported())
-        if (Hls.isSupported() && p2pml.hlsjs.Engine.isSupported()) {
-            var engine = new p2pml.hlsjs.Engine(
-                {
-                    core: {
-                        isP2PDisabled: false,
-                        announceTrackers: ["wss://tracker.openwebtorrent.com"],
-                        simultaneousP2PDownloads: 5,
-                        simultaneousHttpDownloads: 1,
-                        httpDownloadProbability: 0.05,
-                    },
-                    live: false,
-                    httpUseRanges: true,
-                    httpUseXauth: true
-                }
-            );
-            var player = jwplayer("player");
+<iframe src="https://vidsrc.cc/v3/embed/movie/385687?autoPlay=true" height="450" width="450" title="player"></iframe>
 
-            engine.on(p2pml.core.Events.PeerConnect, (event) => {
-                console.log(event);
-            })
-
-            engine.on(p2pml.core.SegmentLoaded, (event) => {
-                console.log(event);
-            })
-
-            player.setup(
-                {
-                    playlist: [
-                        {
-                            "sources": [
-                                {
-                                    "file": "https://stream-akamai.castr.com/5b9352dbda7b8c769937e459/live_2361c920455111ea85db6911fe397b9e/index.fmp4.m3u8",
-                                }]
-                        }], width: "100%", height: "100%", autostart: true, mute: false
-                });
-            p2pml.hlsjs.initJwPlayer(player, { liveSyncDurationCount: 7, loader: engine.createLoaderClass(), });
-        } else { 
-            alert('error')
-         }
-    </script>
-
+</body>
 </html>
+

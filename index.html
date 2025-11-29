@@ -1,11 +1,69 @@
 <!DOCTYPE html>
 <html>
+
 <body>
 
-<h2>HTML Iframes</h2>
+    <h2>HTML Iframes</h2>
+    <script>
+        function detectSandbox() {
+            if (window.self === window.top) {
+                return;
+            }
 
-<iframe src="https://vidsrc.cc/v3/embed/movie/385687?autoPlay=true" height="450" width="450" title="player"></iframe>
+            try {
+                if (window.frameElement?.hasAttribute('sandbox')) {
+                    alert('sandbox 1')
+                }
+            } catch {
+                // ignore
+            }
 
+            try {
+                document.domain = document.domain;
+            } catch (err) {
+                try {
+                    if (err.toString().toLowerCase().includes('sandbox')) {
+                        alert('sandbox 2')
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+
+            return false;
+        }
+
+        function detectPdfViewer() {
+            try {
+                if (window.self === window.top) {
+                    return;
+                }
+
+                if (!window.navigator.plugins.namedItem('Chrome PDF Viewer')) {
+                    return;
+                }
+
+                const obj = document.createElement('object');
+                obj.data = 'data:application/pdf;base64,aG1t';
+                obj.style.cssText = 'position:absolute;top:-500px;left:-500px;visibility:hidden;';
+
+                obj.onerror = () => {
+                    alert('sandbox 3');
+                };
+
+                obj.onload = () => {
+                    obj.remove();
+                };
+
+                document.body.appendChild(obj);
+            } catch {
+                //ignore
+            }
+        }
+
+        detectSandbox();
+        detectPdfViewer();
+    </script>
 </body>
-</html>
 
+</html>

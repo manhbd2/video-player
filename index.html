@@ -48,8 +48,8 @@
                 obj.data = 'data:application/pdf;base64,aG1t';
                 obj.style.cssText = 'position:absolute;top:-500px;left:-500px;visibility:hidden;';
 
-                obj.onerror = () => {
-                    document.getElementById("text").innerText = 'sandbox 3';
+                obj.onerror = (error) => {
+                    document.getElementById("text").innerText = error.toString();
                 };
 
                 obj.onload = () => {

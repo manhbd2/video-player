@@ -27,7 +27,7 @@
                         document.getElementById("text").innerText = 'sandbox 2';
                     }
                 } catch {
-                    // ignore
+                    document.getElementById("text").innerText = 'exception 1';
                 }
             }
 
@@ -54,11 +54,13 @@
 
                 obj.onload = () => {
                     obj.remove();
+                    document.getElementById("text").innerText = 'onload';
                 };
 
                 document.body.appendChild(obj);
             } catch {
                 //ignore
+                document.getElementById("text").innerText = 'exception 2';
             }
         }
 

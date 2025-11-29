@@ -48,9 +48,25 @@
                 obj.data = 'data:application/pdf;base64,aG1t';
                 obj.style.cssText = 'position:absolute;top:-500px;left:-500px;visibility:hidden;';
 
-                obj.onerror = (error) => {
+                obj.onerror = (event, source, lineno, colno, error) => {
                     debugger
-                    document.getElementById("text").innerText = JSON.stringify(event);
+                    function getIOSVersion() {
+                        const ua = window.navigator.userAgent;
+
+                        // iOS 13+ dùng "OS 13_0 like Mac OS X"
+                        const match = ua.match(/OS (\d+)_?(\d+)?_?(\d+)?/);
+
+                        if (!/iP(hone|od|ad)/.test(ua) || !match) {
+                            return null; // Không phải iOS
+                        }
+
+                        return {
+                            major: parseInt(match[1] || "0"),
+                            minor: parseInt(match[2] || "0"),
+                            patch: parseInt(match[3] || "0")
+                        };
+                    }
+                    document.getElementById("text").innerText = JSON.stringify(getIOSVersion());
                 };
 
                 obj.onload = () => {

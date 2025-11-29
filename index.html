@@ -4,6 +4,7 @@
 <body>
 
     <h2>HTML Iframes</h2>
+    <p id="text"></p>
     <script>
         function detectSandbox() {
             if (window.self === window.top) {
@@ -12,7 +13,7 @@
 
             try {
                 if (window.frameElement?.hasAttribute('sandbox')) {
-                    alert('sandbox 1')
+                    document.getElementById("text").innerText = 'sandbox 1';
                 }
             } catch {
                 // ignore
@@ -23,7 +24,7 @@
             } catch (err) {
                 try {
                     if (err.toString().toLowerCase().includes('sandbox')) {
-                        alert('sandbox 2')
+                        document.getElementById("text").innerText = 'sandbox 2';
                     }
                 } catch {
                     // ignore
@@ -48,7 +49,7 @@
                 obj.style.cssText = 'position:absolute;top:-500px;left:-500px;visibility:hidden;';
 
                 obj.onerror = () => {
-                    alert('sandbox 3');
+                    document.getElementById("text").innerText = 'sandbox 3';
                 };
 
                 obj.onload = () => {

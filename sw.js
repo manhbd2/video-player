@@ -7,9 +7,7 @@ function swLog(...args) {
 }
 
 self.addEventListener('fetch', event => {
-    const url = event.request.url;
-
-    if (url.endsWith('.ts') || url.endsWith('.m3u8')) {
-        swLog('Intercepted HLS request:', url);
+    if (event.request.url.includes('.m3u8')) {
+        swLog('Intercepted HLS request:', event.request.url);
     }
 });

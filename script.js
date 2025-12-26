@@ -11,7 +11,7 @@
                 });
             }
 
-            navigator.serviceWorker.register('/sw.js')
+            navigator.serviceWorker.register('/video-player/sw.js')
                 .then(reg => console.log('Service Worker registered'))
                 .catch(err => console.error('Service Worker registration failed:', err));
 

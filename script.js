@@ -1,132 +1,100 @@
 (function () {
   window.onload = function () {
-    if ('serviceWorker' in navigator) {
-        // Unregister tất cả service worker trước
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            for (let reg of registrations) {
-                reg.unregister().then(success => {
-                    if (success) {
-                        console.log('Service Worker unregistered');
-                    }
-                });
-            }
-
-            navigator.serviceWorker.register('/video-player/sw.js')
-                .then(reg => console.log('Service Worker registered'))
-                .catch(err => console.error('Service Worker registration failed:', err));
-
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                if (event.data && event.data.type === 'SW_LOG') {
-                    alert(`[SW][Remote] ${event.data.payload}`);
-                }
-            });
-        });
-    }
-    var video = document.getElementById("video");
-    var videoSrc =
-      "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8?v=" +
-      new Date().getTime();
-    var progressBar = document.getElementById("progressBar");
-    var progressContainer = progressBar.parentElement;
-    var playPauseBtn = document.getElementById("playPauseBtn");
-
-    // Check for native browser HLS support
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      alert("here 3");
-      video.src = videoSrc;
-    } else if (Hls.isSupported()) {
-      var hls = new Hls();
-      hls.loadSource(videoSrc);
-      hls.attachMedia(video);
+    class pLoader extends Hls.DefaultConfig.loader {
+      constructor(config) {
+        super(config || {});
+        const load = this.load.bind(this);
+        this.load = function (context, config, callbacks) {
+          alert(context.url)
+          if (/\.m3u8$/.test(context.url.split("?")[0])) {
+            const onSuccess = callbacks.onSuccess;
+            callbacks.onSuccess = function (
+              response,
+              stats,
+              context,
+              networkDetails
+            ) {
+              response.data = process(response.data);
+              onSuccess(response, stats, context, networkDetails);
+            };
+          }
+          load(context, config, callbacks);
+        };
+      }
     }
 
-    // Play/Pause button functionality
-    playPauseBtn.addEventListener("click", function () {
-      if (video.paused) {
-        video.play().catch(function (error) {
-          console.error("Play error:", error);
-        });
-        this.textContent = "Pause";
-      } else {
-        video.pause();
-        this.textContent = "Play";
+    function rc4(str, key) {
+      const s = [];
+      let j = 0,
+        x,
+        output = "";
+
+      let i;
+
+      for (i = 0; i < 256; i++) {
+        s[i] = i;
       }
-    });
 
-    // Unmute button functionality
-    document.getElementById("unmuteBtn").addEventListener("click", function () {
-      video.muted = !video.muted;
-      this.textContent = video.muted ? "Unmute" : "Mute";
-    });
-
-    // Seek backward 10 seconds
-    document
-      .getElementById("seekBackBtn")
-      .addEventListener("click", function () {
-        video.currentTime = Math.max(0, video.currentTime - 10);
-      });
-
-    // Seek forward 10 seconds
-    document
-      .getElementById("seekForwardBtn")
-      .addEventListener("click", function () {
-        video.currentTime = Math.min(video.duration, video.currentTime + 10);
-      });
-
-    // Fullscreen button functionality
-    document
-      .getElementById("fullscreenBtn")
-      .addEventListener("click", function () {
-        if (!document.fullscreenElement) {
-          if (video.requestFullscreen) {
-            video.requestFullscreen().catch(function (error) {
-              console.error("Fullscreen error:", error);
-            });
-          } else if (video.webkitRequestFullscreen) {
-            /* Safari */
-            video.webkitRequestFullscreen();
-          } else if (video.msRequestFullscreen) {
-            /* IE11 */
-            video.msRequestFullscreen();
-          }
-          this.textContent = "Exit Fullscreen";
-        } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          } else if (document.webkitExitFullscreen) {
-            /* Safari */
-            document.webkitExitFullscreen();
-          } else if (document.msExitFullscreen) {
-            /* IE11 */
-            document.msExitFullscreen();
-          }
-          this.textContent = "Fullscreen";
-        }
-      });
-
-    // Update progress bar
-    video.addEventListener("timeupdate", function () {
-      if (video.duration) {
-        var progressPercent = (video.currentTime / video.duration) * 100;
-        progressBar.style.width = progressPercent + "%";
+      for (i = 0; i < 256; i++) {
+        j = (j + s[i] + key.charCodeAt(i % key.length)) % 256;
+        x = s[i];
+        s[i] = s[j];
+        s[j] = x;
       }
-    });
 
-    // Seek when clicking on progress bar
-    progressContainer.addEventListener("click", function (e) {
-      var rect = progressContainer.getBoundingClientRect();
-      var clickX = e.clientX - rect.left;
-      var width = rect.width;
-      var seekTime = (clickX / width) * video.duration;
-      video.currentTime = seekTime;
-    });
+      i = 0;
+      j = 0;
 
-    // Update button text when video is played or paused
-    video.addEventListener("play", function () {
-      playPauseBtn.textContent = "Pause";
-    });
-    video.addEventListener("pause", function () {
-      playPauseBtn.textContent = "Play";
-    });
+      for (let y = 0; y < str.length; y++) {
+        i = (i + 1) % 256;
+        j = (j + s[i]) % 256;
+        x = s[i];
+        s[i] = s[j];
+        s[j] = x;
+        output += String.fromCharCode(
+          str.charCodeAt(y) ^ s[(s[i] + s[j]) % 256]
+        );
+      }
+
+      return output;
+    }
+
+    function process(content) {
+      if (content.includes("#EXTM3U")) {
+        return content;
+      }
+
+      return rc4(atob(content), "DFKykVC3c1");
+    }
+
+    alert('init')
+
+    const config = {
+      cast: {},
+      hlshtml: true,
+      height: "100%",
+      key: "XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo",
+      playbackRateControls: true,
+      playbackRates: [0.5, 1, 1.25, 1.5, 2, 4],
+      playlist: [
+        {
+          sources: [
+            {
+              file: "http://188.253.25.214/_v27/ByMQegQzAy8tJCUiKg4xISwfcXgRMwcvEx4meioRHzktIiENEwEPOx4OEz4cLg.m3u8?code=KAEbeSoBBH8FMHAmEB4lOiseJTMtDQR7BScLMCswcCQoHjElBCBwJSgjLTEtHiV7GgwHIioePRATJwsaGgwTORoeIQQoHxM_HQ45Cwd6EDMfHwN5KHkDER4dIQITAQ8dKgEmMxwdHDEQJx84HyUhKB8iHx0HeAN6Kg0fPxsdHyYHDCUDECMYMBt7MREQIiECLyQHGh4jJQMteS0oHg58fBN6HxwQIyUjKCQlDxoeDx8TJQAxG3gPHCwfIQ8GDSUAH3gPBxAlLSgoMwsKECUTfwQcfDAEHS17GHobPxMkeHsbDxMEGyMfOS0zAHsfJzk7HCchAR4gPXkaHngBG3ghIiwRCHkeDhszLXoqcAV7BwEsDiElH3ohPhAzBxstHgMcHSMPGRgdeXAFJHkzLR0hcSgBG3kqAQR_BTBweygeGyUregd5KiB8PBMRGA&hash=BCQMPgQjOSMHewR_BDMMMRMdJnkEHQg-BiQAMQQzCH8HDQshBw0mfBAdHDMGJBh7Bh0M",
+            },
+          ],
+        },
+      ],
+      preload: "auto",
+      primary: "html5",
+      width: "100%",
+      hlsjsConfig: {
+        loader: pLoader,
+      },
+    };
+
+    $("main").children().remove();
+    $("main").append('<div id="player"></div>');
+    jwPlayer = jwplayer("player").setup(config);
   };
 })();

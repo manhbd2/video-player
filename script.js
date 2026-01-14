@@ -5,7 +5,7 @@
         super(config || {});
         const load = this.load.bind(this);
         this.load = function (context, config, callbacks) {
-          alert(context.url)
+          alert(context.url);
           if (/\.m3u8$/.test(context.url.split("?")[0])) {
             const onSuccess = callbacks.onSuccess;
             callbacks.onSuccess = function (
@@ -67,7 +67,7 @@
       return rc4(atob(content), "DFKykVC3c1");
     }
 
-    alert('init')
+    alert("init 2");
 
     const config = {
       cast: {},
@@ -96,5 +96,13 @@
     $("main").children().remove();
     $("main").append('<div id="player"></div>');
     jwPlayer = jwplayer("player").setup(config);
+
+    jwPlayer
+      .on("error", function (e) {
+        alert(`error ${JSON.stringify(e)}`);
+      })
+      .on("setupError", function (e) {
+        alert(`setup error ${JSON.stringify(e)}`);
+      });
   };
 })();

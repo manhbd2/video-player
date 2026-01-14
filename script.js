@@ -67,7 +67,7 @@
       return rc4(atob(content), "DFKykVC3c1");
     }
 
-    alert("init 2");
+    alert("init 3");
 
     const config = {
       cast: {},
@@ -98,11 +98,17 @@
     jwPlayer = jwplayer("player").setup(config);
 
     jwPlayer
+      .on("ready", function () {
+        alert("ready");
+      })
+      .on("firstFrame", function () {
+        alert("first frame");
+      })
       .on("error", function (e) {
-        alert(`error ${JSON.stringify(e)}`);
+        alert(`error`);
       })
       .on("setupError", function (e) {
-        alert(`setup error ${JSON.stringify(e)}`);
+        alert(`setup error`);
       });
   };
 })();

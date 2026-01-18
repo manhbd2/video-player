@@ -70,7 +70,6 @@
     alert("init 3");
 
     const config = {
-      cast: {},
       hlshtml: true,
       height: "100%",
       key: "XSuP4qMl+9tK17QNb+4+th2Pm9AWgMO/cYH8CI0HGGr7bdjo",
